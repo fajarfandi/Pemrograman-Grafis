@@ -1,0 +1,211 @@
+#include <windows.h>
+#include <GL/glut.h>
+#include <stdlib.h>
+#include <math.h>
+
+int bentukindeks;
+GLdouble cx,cy,cz; // Posisi kamera
+GLdouble ry, rx; // Rotasi kamera terhadap sumbu y dan x
+GLfloat bumi_y,bulan_y,matahari_y;
+
+
+
+void init(void) {
+
+   glClearColor (0.0, 0.0, 0.0, 0.0);
+   glShadeModel (GL_SMOOTH);
+
+   glMatrixMode (GL_PROJECTION);
+   glLoadIdentity();
+   glFrustum (-1,1,-1, 1, 1.8, 20);
+   glMatrixMode (GL_MODELVIEW);
+   glLoadIdentity();
+
+   glEnable(GL_DEPTH_TEST);
+   glEnable(GL_LIGHTING);
+   glEnable (GL_LIGHT0);  // Aktifkan 3 sumber cahaya
+   bumi_y = 1;
+   matahari_y = 2;
+   bulan_y = 1;
+}
+
+void display(void) {
+   GLfloat light_position[] = { -1.0, 1.0, 0.0, 1.0 };
+   GLfloat light_ambient [] = { 5.0, 5.0, 0.0, 0.0 };
+   GLfloat light_diffuse [] = { 0.5, 0.5, 0.5, 0.0 };
+   GLfloat light_specular[] = { 0.5, 0.5, 0.5, 0.0 };
+
+   GLfloat matahari_ambient[] = {1.0,1.0,0.0,0.0};
+   GLfloat matahari_diffuse[] = {1.2,1.0,1.0,1.0};
+   GLfloat matahari_specular[] = {1.2,1.2,1.2,1.0};
+   GLfloat matahari_shininess[] = {30.0};
+
+   GLfloat bumi_ambient[] = {0.0,0.0,2.0,0.0};//efek pencahayaan yang telah membaur dengan lingkungan sehingga arah cahaya tidak dapat diketahui, seakan akan cahaya datang dari segala arah
+   GLfloat bumi_diffuse[] = {0.0,0.0,1.0,0.0};//pencahayaan yang tergantung dari besarnya sudut yang dibentuk antara sinar dari lampu ke titik tabrak pada objek dengan norma objek
+   GLfloat bumi_specular[] = {0.0,0.0,0.3,0.0}; //efek pencahayaan dimana bayangan sumber cahaya terlihat pada permukaan objek
+   GLfloat bumi_shininess[] = {50.0};
+
+   GLfloat bulan_ambient[] = {0.0,0.0,0.2,0.0};
+   GLfloat bulan_diffuse[] = {1.0,1.0,1.0,0.0};
+   GLfloat bulan_specular[] = {0.2,0.2,0.2,0.0};
+   GLfloat bulan_shininess[] = {1.0};
+
+
+   // Bersihkan layar
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+   glLoadIdentity();
+   gluLookAt (cx,cy,cz, 0,0,0, 0,1,0);
+   glRotatef(ry,0.0,1.0,0.0);
+   glRotatef(rx,1.0,0.0,0.0);
+   glPushMatrix();
+
+
+   // gambar matahari
+   glMaterialfv(GL_FRONT, GL_AMBIENT,  matahari_ambient);
+   glMaterialfv(GL_FRONT, GL_DIFFUSE,  matahari_diffuse);
+   glMaterialfv(GL_FRONT, GL_SPECULAR, matahari_specular);
+   glMaterialfv(GL_FRONT, GL_SHININESS, matahari_shininess);
+   glPushMatrix();
+   glRotatef(matahari_y,0.0,-1.0,0.0);
+   glTranslatef(0.2,0.0,0.0);
+   glutSolidSphere (0.4,50,50); // efek pencahayaan tidak memperluas koordinat tekstur.
+
+   glPopMatrix();
+
+   //gambar bumi
+   glMaterialfv(GL_FRONT, GL_AMBIENT,  bumi_ambient);
+   glMaterialfv(GL_FRONT, GL_DIFFUSE,  bumi_diffuse);
+   glMaterialfv(GL_FRONT, GL_SPECULAR, bumi_specular);
+   glMaterialfv(GL_FRONT, GL_SHININESS, bumi_shininess);
+   glPushMatrix();
+   glRotatef(bumi_y,0.0,1.0,0.0);
+   glTranslatef(2.3,0.0,0.0);
+   glutSolidSphere (0.2,50,50);
+   glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+   glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
+   glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);
+   glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+   glPopMatrix();
+
+   //gambar bulan
+   glMaterialfv(GL_FRONT, GL_AMBIENT,  bulan_ambient);
+   glMaterialfv(GL_FRONT, GL_DIFFUSE,  bulan_diffuse);
+   glMaterialfv(GL_FRONT, GL_SPECULAR, bulan_specular);
+   glMaterialfv(GL_FRONT, GL_SHININESS, bulan_shininess);
+   glRotatef(bumi_y,0.0,1.0,0.0);
+   glTranslatef(2.3,0.0,0.0);
+   glRotatef(bulan_y,0.0,0.-1,0.0);
+   glTranslatef(0.5,0.0,0.0);
+   glutSolidSphere (0.05,50,50);
+   glPopMatrix();
+
+   glutSwapBuffers();
+}
+
+void animate (void) {
+   bumi_y += 1;
+   bulan_y += 3;
+   glutPostRedisplay();
+}
+
+// Handle special key-press
+void specialkey (int key, int x, int y) {
+
+   switch (key) {
+   case GLUT_KEY_UP:
+    rx+=5;
+    break;
+
+   case GLUT_KEY_DOWN:
+    rx-=5;
+    break;
+
+   case GLUT_KEY_RIGHT:
+    ry+=5;
+    break;
+
+   case GLUT_KEY_LEFT:
+    ry-=5;
+    break;
+
+   default:
+    break;
+   }
+
+   // Gambar kembali window
+   glutPostRedisplay();
+}
+
+void keyboard(unsigned char key, int x, int y) {
+
+   switch (key) {
+
+   case 'b': // Tombol 'b' / 'B' => Bentuk Bola
+   case 'B':
+   bentukindeks = 1;
+   break;
+
+   case 'k': // Tombol 'k' / 'K' => Bentuk Kubus
+   case 'K':
+   bentukindeks = 0;
+   break;
+
+   case 't': // Tombol 't' / 'T' => Bentuk Teapot
+   case 'T':
+   bentukindeks = 2;
+   break;
+
+   case 'o': // Tombol 'o' / 'O' => Bentuk Torus
+   case 'O':
+   bentukindeks = 3;
+   break;
+
+   case 'f': // Kamera lihat dari depan
+   case 'F':
+   cx=0; cy=0; cz=5;
+   break;
+
+   case 'n': // Kamera lihat dari samping kanan
+   case 'N':
+   cx=5; cy=0; cz=0;
+   break;
+
+   case 'l': // Kamera lihat dari depan-atas-kanan
+   case 'L':
+   cx=5; cy=3; cz=2;
+   break;
+
+   case 27: // Tombol ESC = Keluar
+   exit(0);
+
+   default:
+   break;
+   }
+
+   // Gambar kembali window
+   glutPostRedisplay();
+}
+
+int main(int argc, char **argv)
+{
+   glutInit(&argc, argv);
+   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+
+   glutInitWindowSize (900,900);
+   glutInitWindowPosition (100,100);
+
+   glutCreateWindow("Tata Surya");
+   init();
+
+   bentukindeks = 1;
+   cx=0; cy=6; cz=6;
+
+   glutDisplayFunc(display);
+   glutKeyboardFunc(keyboard);
+   glutSpecialFunc(specialkey);
+   glutIdleFunc (animate);
+   glutMainLoop();
+
+   return 0;
+}
